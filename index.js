@@ -219,8 +219,9 @@ const handleLeaveRoom = (ws, message) => {
     players: getPlayersData(room),
   });
 
-  if (room.players.size == 0) {
-    rooms.delete(message.roomId);
+  if (room.players.size === 0) {
+    rooms.delete(ws.roomId); 
+    console.log(`Room ${ws.roomId} has been deleted`);
   }
 
   ws.roomId = null;
@@ -234,6 +235,7 @@ const handlePlayerDisconnect = (ws) => {
 
   if (room.players.size === 0) {
     rooms.delete(ws.roomId);
+    console.log(`Room ${ws.roomId} has been deleted due to all players disconnected`);
   } else {
     broadcastToRoom(room, {
       action: "player_left",
@@ -344,6 +346,8 @@ const getPlayersData = (room) => {
     spriteName: player.spriteName,
   }));
 };
+
+
 
 server.listen(port, () => {
   console.log(`Listening on http://localhost:${port}`);
