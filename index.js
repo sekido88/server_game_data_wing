@@ -45,9 +45,12 @@ wss.on("connection", (ws) => {
   });
 });
 
-function handleMessage(ws, message) {
+const handleMessage = (ws, message) => {
   try {
     switch (message.action) {
+      case "chat_message":
+        handleChatMessage(ws, message);
+        break;
       case "get_rooms":
         handleGetRooms(ws, message);
         break;
@@ -109,6 +112,21 @@ const handleGetRooms = (ws, message) => {
   console.log(`Sent list of rooms to client ${ws.id}`);
 };
 
+const handleChatMessage = (ws, message) => {
+  const room = rooms.get(ws.roomId);
+  if (!room) return;
+
+  const player = room.players.get(ws.id);
+  if (!player) return;
+
+  broadcastToRoom(room, {
+    action: "chat_message",
+    playerId: ws.id,
+    senderName: player.name,
+    chatMessage: message.chatMessage
+  });
+};
+
 const handleCreateRoom = (ws, message) => {
   const roomId = generateRoomId();
   console.log(`Creating room: ${roomId} for client: ${ws.id}`);
@@ -140,6 +158,7 @@ const handleCreateRoom = (ws, message) => {
 
   sendToClient(ws, {
     action: "room_created",
+    playerName : message.playerName,
     roomId: roomId,
     players: getPlayersData(room),
     playerId: ws.id,
@@ -176,6 +195,7 @@ const handleJoinRoom = (ws, message) => {
     room,
     {
       action: "player_joined",
+      playerName : message.playerName,
       players: getPlayersData(room),
       playerId: ws.id,
     },
@@ -346,8 +366,6 @@ const getPlayersData = (room) => {
     spriteName: player.spriteName,
   }));
 };
-
-
 
 server.listen(port, () => {
   console.log(`Listening on http://localhost:${port}`);
