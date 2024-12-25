@@ -160,6 +160,9 @@ const handleCreateRoom = (ws, message) => {
     action: "room_created",
     playerName : message.playerName,
     roomId: roomId,
+    spriteName: message.spriteName,
+    trailEffectName: message.trailEffectName,
+    socketEffectName: message.socketEffectName,
     players: getPlayersData(room),
     playerId: ws.id,
     isHost: true,
@@ -345,14 +348,20 @@ const handlePlayerFinished = (ws, message) => {
     action: "player_finished",
     playerId: ws.id,
     raceTime: raceTime,
-    finishTimes: Array.from(room.finishTimes.entries()),
+    finishTimes: Array.from(room.finishTimes.entries()).map(([id, value]) => ({
+      playerId: id,
+      time: value,
+    })),
   });
 
   if (room.finishTimes.size === room.players.size) {
     room.isRacing = false;
     broadcastToRoom(room, {
       action: "race_ended",
-      finishTimes: Array.from(room.finishTimes.entries()),
+      finishTimes: Array.from(room.finishTimes.entries()).map(([id, value]) => ({
+        playerId: id,
+        time: value,
+      })),
     });
   }
 };
